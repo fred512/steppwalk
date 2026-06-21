@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "quasar build -m pwa",
+  "outputDirectory": "dist/pwa",
+  "framework": null,
+  "installCommand": "npm install"
+}

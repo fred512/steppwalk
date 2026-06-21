@@ -1,0 +1,96 @@
+// StepWalk — estilos globais "Trail Instrument"
+// =================================================
+
+// Fontes: Saira Condensed (números/instrumento) + Hanken Grotesk (corpo)
+@import url('https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
+
+// --- Tokens da paleta (16 light / 16 dark) ---
+:root {
+  --color-primary: #0D968B;
+  --color-secondary: #F3751B;
+  --color-tertiary: #F2B10D;
+  --color-alternate: #C2D6D4;
+  --color-primary-text: #171C1C;
+  --color-secondary-text: #637472;
+  --color-primary-bg: #F6F8F8;
+  --color-secondary-bg: #E6EAEA;
+  --color-accent1: #A1BAB8;
+  --color-accent2: #EAAF86;
+  --color-accent3: #E6CC89;
+  --color-accent4: #203C39;
+  --color-success: #367C39;
+  --color-error: #CF3030;
+  --color-warning: #EB8D0A;
+  --color-info: #3378C1;
+
+  // tokens semânticos da UI
+  --sw-bg: var(--color-primary-bg);
+  --sw-surface: #FFFFFF;
+  --sw-surface-hi: var(--color-secondary-bg);
+  --sw-text: var(--color-primary-text);
+  --sw-text-2: var(--color-secondary-text);
+  --sw-hairline: rgba(23, 28, 28, 0.10);
+  --sw-live: var(--color-secondary);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+
+.body--dark {
+  --color-primary: #2AF8E7;
+  --color-secondary: #FA8F42;
+  --color-tertiary: #FAC338;
+  --color-alternate: #283332;
+  --color-primary-text: #E3E8E7;
+  --color-secondary-text: #98A4A3;
+  --color-primary-bg: #101414;
+  --color-secondary-bg: #1E2424;
+  --color-accent1: #435654;
+  --color-accent2: #D48954;
+  --color-accent3: #D2AF56;
+  --color-accent4: #2E4241;
+  --color-success: #5FB962;
+  --color-error: #DD6E6E;
+  --color-warning: #F7AD45;
+  --color-info: #72A4DA;
+
+  --sw-bg: #0B1110;
+  --sw-surface: #16201F;
+  --sw-surface-hi: #1C2826;
+  --sw-text: #E7EEEC;
+  --sw-text-2: #8FA09D;
+  --sw-hairline: rgba(231, 238, 236, 0.08);
+  --sw-live: var(--color-secondary);
+}
+
+// --- Base ---
+body {
+  font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--sw-bg);
+  color: var(--sw-text);
+}
+
+// Utilitários tipográficos da estética "instrumento"
+.font-instrument {
+  font-family: 'Saira Condensed', sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+.metric-label {
+  font-family: 'Saira Condensed', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-weight: 600;
+  color: var(--sw-text-2);
+}
+
+.sw-live { color: var(--sw-live); }
+.sw-hairline { border-color: var(--sw-hairline); }
+
+// Texturas / atmosfera reaproveitáveis
+.sw-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
