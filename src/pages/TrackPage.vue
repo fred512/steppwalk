@@ -58,10 +58,15 @@
         </div>
       </div>
 
+      <q-banner v-if="session.gpsError" class="gps-error-banner" dense rounded>
+        <template #avatar><q-icon name="gps_off" color="white" /></template>
+        {{ session.gpsError }}
+      </q-banner>
+
       <div class="map-wrap">
         <RouteMap :route="session.route" follow />
         <div v-if="session.route.length === 0" class="map-hint">
-          Buscando sinal de GPS…
+          {{ session.gpsError ? 'GPS indisponível' : 'Buscando sinal de GPS…' }}
         </div>
       </div>
 
@@ -98,6 +103,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
 import GoalRing from 'components/GoalRing.vue';
 import MetricCard from 'components/MetricCard.vue';
 import LiveStats from 'components/LiveStats.vue';
@@ -108,6 +114,7 @@ import { useProfileStore } from 'src/stores/profile';
 import { fmtInt, fmtDistanceKm } from 'src/utils/format';
 
 const router = useRouter();
+const $q = useQuasar();
 const session = useSessionStore();
 const history = useHistoryStore();
 const profile = useProfileStore();
@@ -163,8 +170,27 @@ async function onStart() {
 }
 
 async function onFinish() {
-  const id = await session.finish();
-  if (id) void router.push({ name: 'walk-detail', params: { id } });
+  const result = await session.finish();
+  if (result.ok) {
+    void router.push({ name: 'walk-detail', params: { id: result.id } });
+    return;
+  }
+  // nunca termina em silêncio: explica por que não salvou
+  if (result.reason === 'empty-no-gps') {
+    $q.dialog({
+      title: 'Caminhada não registrada',
+      message:
+        'Não captamos sinal de GPS. Verifique se a permissão de localização está liberada e tente em um local aberto. Dica: mantenha o app aberto com a tela ligada durante a caminhada.',
+      dark: true,
+      ok: { label: 'Entendi', color: 'primary' },
+    });
+  } else if (result.reason === 'empty-too-short') {
+    $q.notify({
+      message: 'Caminhada muito curta para registrar.',
+      color: 'dark',
+      icon: 'directions_walk',
+    });
+  }
 }
 
 function goSettings() {
@@ -349,6 +375,12 @@ onMounted(() => {
 }
 .gps-weak {
   color: var(--color-warning);
+}
+.gps-error-banner {
+  background: var(--color-warning);
+  color: #fff;
+  font-size: 13px;
+  margin-bottom: 12px;
 }
 .map-wrap {
   position: relative;

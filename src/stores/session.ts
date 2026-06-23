@@ -19,6 +19,11 @@ const MIN_MOVING_KMH = 0.5; // abaixo disso não conta como movimento
 
 export type SessionStatus = 'idle' | 'active' | 'paused';
 
+/** Resultado de finalizar uma caminhada (nunca falha em silêncio). */
+export type FinishResult =
+  | { ok: true; id: string }
+  | { ok: false; reason: 'not-running' | 'empty-no-gps' | 'empty-too-short' };
+
 export const useSessionStore = defineStore('session', () => {
   const profileStore = useProfileStore();
   const historyStore = useHistoryStore();
@@ -34,6 +39,7 @@ export const useSessionStore = defineStore('session', () => {
   const durationSec = ref(0);
   const calories = ref(0);
   const gpsAccuracy = ref<number | null>(null);
+  const gpsError = ref<string | null>(null); // permissão negada / sinal indisponível
   const motionAvailable = ref(false);
   const startedAt = ref(0);
 
@@ -92,8 +98,17 @@ export const useSessionStore = defineStore('session', () => {
 
     // GPS
     stopGeo = startGeoWatch({
-      onPoint: handlePoint,
+      onPoint: (p, seg) => {
+        gpsError.value = null; // chegou ponto → sinal ok
+        handlePoint(p, seg);
+      },
       onAccuracy: (acc) => (gpsAccuracy.value = acc),
+      onError: (err) => {
+        gpsError.value =
+          err.code === err.PERMISSION_DENIED
+            ? 'Permissão de localização negada. Libere o GPS nas configurações do navegador.'
+            : 'Sinal de GPS indisponível. Vá para um local aberto e tente novamente.';
+      },
     });
 
     // cronômetro: conta só tempo em movimento + auto-pause
@@ -141,14 +156,18 @@ export const useSessionStore = defineStore('session', () => {
     lastMoveTs = Date.now();
   }
 
-  async function finish(): Promise<string | null> {
-    if (!running.value) return null;
+  async function finish(): Promise<FinishResult> {
+    if (!running.value) return { ok: false, reason: 'not-running' };
     teardown();
 
-    // descarta caminhadas sem deslocamento
+    // caminhada sem deslocamento → não salva, mas avisa o porquê
     if (distanceM.value < 1 && steps.value < 1) {
+      const noGps = route.value.length === 0 || gpsError.value !== null;
       reset();
-      return null;
+      return {
+        ok: false,
+        reason: noGps ? 'empty-no-gps' : 'empty-too-short',
+      };
     }
 
     const now = Date.now();
@@ -169,7 +188,7 @@ export const useSessionStore = defineStore('session', () => {
     };
     await historyStore.add(walk);
     reset();
-    return walk.id;
+    return { ok: true, id: walk.id };
   }
 
   function cancel() {
@@ -195,19 +214,30 @@ export const useSessionStore = defineStore('session', () => {
     durationSec.value = 0;
     calories.value = 0;
     gpsAccuracy.value = null;
+    gpsError.value = null;
     motionAvailable.value = false;
     startedAt.value = 0;
+  }
+
+  // Re-adquire o Wake Lock quando o app volta ao primeiro plano
+  // (o navegador o libera automaticamente ao trocar de aba/bloquear a tela).
+  function onVisibility() {
+    if (document.visibilityState === 'visible' && running.value) {
+      void requestWakeLock();
+    }
   }
 
   async function requestWakeLock() {
     if (!profileStore.settings.keepScreenOn) return;
     try {
       wakeLock = await navigator.wakeLock?.request('screen');
+      document.addEventListener('visibilitychange', onVisibility);
     } catch {
       wakeLock = null;
     }
   }
   async function releaseWakeLock() {
+    document.removeEventListener('visibilitychange', onVisibility);
     try {
       await wakeLock?.release();
     } catch {
@@ -227,6 +257,7 @@ export const useSessionStore = defineStore('session', () => {
     avgSpeedKmh,
     avgPaceMinKm,
     gpsAccuracy,
+    gpsError,
     motionAvailable,
     isMoving,
     // ações
