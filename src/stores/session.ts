@@ -15,7 +15,8 @@ import { useProfileStore } from './profile';
 import { useHistoryStore } from './history';
 
 const AUTO_PAUSE_SEC = 8; // sem movimento por N s → auto-pausa
-const MIN_MOVING_KMH = 0.5; // abaixo disso não conta como movimento
+const MIN_MOVING_KMH = 0.5; // abaixo disso não conta como movimento (parado)
+const MAX_REALISTIC_KMH = 25; // acima disso é "salto" de GPS — descarta
 
 export type SessionStatus = 'idle' | 'active' | 'paused';
 
@@ -127,8 +128,13 @@ export const useSessionStore = defineStore('session', () => {
     const dtSec = Math.max((point.t - prev.t) / 1000, 0.001);
     const speedKmh = segmentM / 1000 / (dtSec / 3600);
 
-    // movimento real → soma distância/calorias e retoma de auto-pause
-    if (speedKmh >= MIN_MOVING_KMH) {
+    // movimento real (velocidade plausível e não pausado manualmente)
+    // → soma distância/calorias e retoma de auto-pause
+    const realMove =
+      speedKmh >= MIN_MOVING_KMH &&
+      speedKmh <= MAX_REALISTIC_KMH &&
+      !manualPaused.value;
+    if (realMove) {
       distanceM.value += segmentM;
       calories.value += segmentCalories(
         speedKmh,

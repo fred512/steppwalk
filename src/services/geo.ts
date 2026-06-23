@@ -30,8 +30,8 @@ export function haversineM(a: GeoPoint, b: GeoPoint): number {
 }
 
 // Filtros anti-ruído de GPS
-export const MAX_ACCURACY_M = 25; // descarta pontos com precisão pior que isso
-export const MIN_MOVE_M = 3; // ignora jitter parado
+export const MAX_ACCURACY_M = 20; // descarta pontos com precisão pior que isso
+export const MIN_MOVE_M = 6; // ignora jitter parado (deslocamento mínimo p/ contar)
 
 export type GeoErrorKind = 'permission' | 'unavailable' | 'timeout';
 
@@ -45,15 +45,21 @@ export interface GeoWatchHandlers {
 function makePointSink(handlers: GeoWatchHandlers) {
   let last: GeoPoint | null = null;
   return (point: GeoPoint) => {
-    handlers.onAccuracy?.(point.acc ?? 999);
-    if ((point.acc ?? 999) > MAX_ACCURACY_M) return; // sinal fraco
-    let segment = 0;
+    const acc = point.acc ?? 999;
+    handlers.onAccuracy?.(acc);
+    if (acc > MAX_ACCURACY_M) return; // sinal fraco
     if (last) {
-      segment = haversineM(last, point);
-      if (segment < MIN_MOVE_M) return; // jitter parado
+      const segment = haversineM(last, point);
+      // exige deslocamento MAIOR que o ruído do GPS — mata a deriva parado.
+      // (quanto pior a precisão, mais movimento é exigido para contar)
+      const minMove = Math.max(MIN_MOVE_M, acc * 0.6);
+      if (segment < minMove) return; // jitter / parado: ignora
+      last = point;
+      handlers.onPoint(point, segment);
+    } else {
+      last = point;
+      handlers.onPoint(point, 0); // primeiro ponto: semeia a rota
     }
-    last = point;
-    handlers.onPoint(point, segment);
   };
 }
 
@@ -104,7 +110,7 @@ function startNativeWatch(handlers: GeoWatchHandlers): () => void {
       backgroundTitle: 'StepWalk — caminhada em andamento',
       requestPermissions: true,
       stale: false,
-      distanceFilter: 0,
+      distanceFilter: 8, // só emite após mover ~8m (reduz deriva parado na origem)
     },
     (location?: BgLocation, error?: { code?: string; message: string }) => {
       if (error) {
@@ -138,13 +144,26 @@ export async function openNativeSettings(): Promise<void> {
   if (Capacitor.isNativePlatform()) await BackgroundGeolocation.openSettings();
 }
 
-/** Ganho de elevação acumulado (somando apenas subidas). */
+// A altitude do GPS é muito ruidosa; só conta subidas sustentadas acima do limiar.
+const ELEVATION_THRESHOLD_M = 5;
+
+/** Ganho de elevação acumulado com histerese (ignora ruído de altitude). */
 export function elevationGain(route: GeoPoint[]): number {
   let gain = 0;
-  for (let i = 1; i < route.length; i++) {
-    const a = route[i - 1]?.alt;
-    const b = route[i]?.alt;
-    if (a != null && b != null && b > a) gain += b - a;
+  let ref: number | null = null;
+  for (const p of route) {
+    const a = p.alt;
+    if (a == null) continue;
+    if (ref == null) {
+      ref = a;
+      continue;
+    }
+    if (a > ref + ELEVATION_THRESHOLD_M) {
+      gain += a - ref; // subida real
+      ref = a;
+    } else if (a < ref) {
+      ref = a; // novo mínimo local (descida não conta, mas baixa a referência)
+    }
   }
   return gain;
 }
