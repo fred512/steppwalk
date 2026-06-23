@@ -1,8 +1,8 @@
 {
   "name": "stepwalk",
-  "version": "2",
+  "version": "3",
   "description": "A Quasar Project",
-  "productName": "StepWalk",
+  "productName": "SteppWalk",
   "author": "Fred",
   "type": "module",
   "private": true,

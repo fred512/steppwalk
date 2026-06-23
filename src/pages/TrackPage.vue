@@ -4,7 +4,7 @@
     <section v-if="session.status === 'idle'" class="idle">
       <header class="head">
         <div>
-          <h1 class="font-instrument title">{{ greeting }}, {{ firstName }}</h1>
+          <h1 class="font-instrument title">{{ greetingLine }}</h1>
           <div class="sub">Pronto para a trilha de hoje?</div>
         </div>
         <q-btn flat round icon="settings" color="grey-5" @click="goSettings" />
@@ -127,13 +127,17 @@ const stepProgress = computed(() =>
   goals.value.dailySteps > 0 ? today.value.steps / goals.value.dailySteps : 0,
 );
 
-const firstName = computed(() => 'Fred');
+const firstName = computed(() => profile.profile.name?.trim() ?? '');
 const greeting = computed(() => {
   const h = new Date().getHours();
   if (h < 12) return 'Bom dia';
   if (h < 18) return 'Boa tarde';
   return 'Boa noite';
 });
+// Usa o nome do perfil; sem nome, mostra só a saudação.
+const greetingLine = computed(() =>
+  firstName.value ? `${greeting.value}, ${firstName.value}` : greeting.value,
+);
 
 // --- GPS status ---
 const gpsClass = computed(() => {

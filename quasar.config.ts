@@ -146,8 +146,8 @@ export default defineConfig((/* ctx */) => {
     pwa: {
       workboxMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       extendManifestJson(json) {
-        json.name = 'StepWalk';
-        json.short_name = 'StepWalk';
+        json.name = 'SteppWalk';
+        json.short_name = 'SteppWalk';
         json.description = 'Caminhadas & trekking — rota por GPS, passos e calorias.';
         json.display = 'standalone';
         json.orientation = 'portrait';

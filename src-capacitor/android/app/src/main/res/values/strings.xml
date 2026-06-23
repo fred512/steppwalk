@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">StepWalk</string>
-    <string name="title_activity_main">StepWalk</string>
+    <string name="app_name">SteppWalk</string>
+    <string name="title_activity_main">SteppWalk</string>
     <string name="package_name">com.stepwalk.app</string>
     <string name="custom_url_scheme">com.stepwalk.app</string>
 </resources>

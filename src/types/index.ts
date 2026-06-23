@@ -30,6 +30,7 @@ export interface Walk {
 }
 
 export interface Profile {
+  name?: string; // nome para a saudação (opcional)
   weightKg: number;
   heightCm: number;
   sex: 'male' | 'female' | 'other';

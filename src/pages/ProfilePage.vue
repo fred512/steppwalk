@@ -23,6 +23,7 @@
     </div>
 
     <!-- campos -->
+    <FieldRow label="Nome" :value="profile.name || '—'" @edit="editName" />
     <FieldRow label="Peso" :value="profile.weightKg" unit="kg" @edit="editNum('weightKg', 'Peso (kg)', 30, 250)" />
     <FieldRow label="Altura" :value="profile.heightCm" unit="cm" @edit="editNum('heightCm', 'Altura (cm)', 100, 230)" />
     <FieldRow label="Idade" :value="profile.age" unit="anos" @edit="editNum('age', 'Idade', 5, 120)" />
@@ -79,6 +80,18 @@ function setSex(sex: Profile['sex']) {
 }
 function goSettings() {
   void router.push({ name: 'settings' });
+}
+
+function editName() {
+  $q.dialog({
+    title: 'Seu nome',
+    message: 'Aparece na saudação da tela inicial.',
+    prompt: { model: profile.value.name ?? '', type: 'text' },
+    cancel: true,
+    dark: true,
+  }).onOk((val: string) => {
+    profileStore.updateProfile({ name: val.trim() });
+  });
 }
 
 function editNum(

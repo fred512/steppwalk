@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#444;display:flex;flex-wrap:wrap;gap:20px;padding:20px;}
+  .sq{flex:none;display:grid;place-items:center;overflow:hidden;}
+  .teal{background:linear-gradient(150deg,#12a89c 0%,#0D968B 48%,#0a6f68 100%);}
+  .dark{background:radial-gradient(120% 120% at 50% 35%,#16201F,#0B1110);}
+  svg{display:block;}
+</style>
+</head>
+<body>
+  <!-- foreground adaptativo: tile teal + marca (marca dentro da zona segura ~50%) -->
+  <div class="sq teal" id="fg" style="width:1024px;height:1024px"></div>
+  <!-- background adaptativo: teal puro -->
+  <div class="sq teal" id="bg" style="width:1024px;height:1024px"></div>
+  <!-- splash claro e escuro: fundo escuro + marca central -->
+  <div class="sq dark" id="splash" style="width:2732px;height:2732px"></div>
+  <div class="sq dark" id="splashDark" style="width:2732px;height:2732px"></div>
+
+<script>
+  // marca "trilha-S + pin": trilha escura + pin coral
+  function mark(size, trail, pinInner){
+    return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" fill="none">
+      <path d="M40 15 C 40 26, 22 26, 22 36 C 22 45, 42 44, 42 52"
+        stroke="${trail}" stroke-width="6.5" stroke-linecap="round"/>
+      <circle cx="22" cy="36" r="3.4" fill="${trail}"/>
+      <path d="M40 6 C 34.5 6, 30 10.4, 30 16 C 30 22, 40 28, 40 28 C 40 28, 50 22, 50 16 C 50 10.4, 45.5 6, 40 6 Z"
+        fill="#F3751B"/>
+      <circle cx="40" cy="16" r="3.6" fill="${pinInner}"/>
+    </svg>`;
+  }
+  // tile do app (teal): trilha escura, pin com miolo teal
+  document.getElementById('fg').innerHTML = mark(1024*0.5, '#053b36', '#0a6f68');
+  document.getElementById('bg').innerHTML = '';
+  // splash: marca maior, trilha clara p/ destacar no escuro
+  document.getElementById('splash').innerHTML = mark(2732*0.26, '#2AF8E7', '#0B1110');
+  document.getElementById('splashDark').innerHTML = mark(2732*0.26, '#2AF8E7', '#0B1110');
+</script>
+</body>
+</html>

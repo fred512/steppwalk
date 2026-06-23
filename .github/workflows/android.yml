@@ -44,6 +44,10 @@ jobs:
         run: npx cap sync android
         working-directory: src-capacitor
 
+      - name: Generate app icons + splash (SteppWalk)
+        run: npx @capacitor/assets@3 generate --android
+        working-directory: src-capacitor
+
       - name: Build debug APK
         working-directory: src-capacitor/android
         run: |
