@@ -1,5 +1,8 @@
 <template>
   <div class="app-shell">
+    <!-- selo de versão (confere atualização do PWA) -->
+    <div class="version-badge">v{{ appVersion }}</div>
+
     <!-- atmosfera compartilhada -->
     <div class="sw-glow glow-a"></div>
     <div class="sw-glow glow-b"></div>
@@ -40,6 +43,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
 const router = useRouter();
+const appVersion = __APP_VERSION__;
 
 const tabs = [
   { name: 'track', label: 'Trilha', icon: 'my_location' },
@@ -72,6 +76,19 @@ function go(name: string) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+.version-badge {
+  position: fixed;
+  top: calc(var(--safe-top) + 4px);
+  left: 12px;
+  z-index: 50;
+  font-family: 'Saira Condensed', sans-serif;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  opacity: 0.6;
+  pointer-events: none;
 }
 .topo {
   position: fixed;
