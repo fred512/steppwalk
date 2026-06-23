@@ -1,6 +1,6 @@
 {
   "name": "stepwalk",
-  "version": "1",
+  "version": "2",
   "description": "A Quasar Project",
   "productName": "StepWalk",
   "author": "Fred",
@@ -14,6 +14,8 @@
     "postinstall": "quasar prepare --silent"
   },
   "dependencies": {
+    "@capacitor-community/background-geolocation": "^1.2.26",
+    "@capacitor/core": "^8.4.1",
     "@quasar/extras": "^2.0.0",
     "leaflet": "^1.9.4",
     "localforage": "^1.10.0",

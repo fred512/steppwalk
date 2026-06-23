@@ -47,6 +47,7 @@ export const useSessionStore = defineStore('session', () => {
   let stopPed: (() => void) | null = null;
   let timer: ReturnType<typeof setInterval> | null = null;
   let lastMoveTs = 0;
+  let lastTickTs = 0; // p/ medir tempo pelo relógio real (não assume 1s fixo)
   let wakeLock: WakeLockSentinel | null = null;
 
   // --- derivados ---
@@ -103,15 +104,16 @@ export const useSessionStore = defineStore('session', () => {
         handlePoint(p, seg);
       },
       onAccuracy: (acc) => (gpsAccuracy.value = acc),
-      onError: (err) => {
+      onError: (kind) => {
         gpsError.value =
-          err.code === err.PERMISSION_DENIED
-            ? 'Permissão de localização negada. Libere o GPS nas configurações do navegador.'
+          kind === 'permission'
+            ? 'Permissão de localização negada. Libere o GPS nas configurações do aparelho.'
             : 'Sinal de GPS indisponível. Vá para um local aberto e tente novamente.';
       },
     });
 
     // cronômetro: conta só tempo em movimento + auto-pause
+    lastTickTs = Date.now();
     timer = setInterval(tick, 1000);
 
     void requestWakeLock();
@@ -139,12 +141,16 @@ export const useSessionStore = defineStore('session', () => {
   }
 
   function tick() {
+    const now = Date.now();
+    const deltaSec = Math.max(0, (now - lastTickTs) / 1000); // tempo real decorrido
+    lastTickTs = now;
     if (!running.value) return;
     // auto-pause por inatividade
-    if (!manualPaused.value && Date.now() - lastMoveTs > AUTO_PAUSE_SEC * 1000) {
+    if (!manualPaused.value && now - lastMoveTs > AUTO_PAUSE_SEC * 1000) {
       autoPaused.value = true;
     }
-    if (isMoving.value) durationSec.value++;
+    // soma o tempo REAL decorrido (corrige velocidade quando o app é suspenso)
+    if (isMoving.value) durationSec.value += deltaSec;
   }
 
   function pause() {
@@ -154,6 +160,7 @@ export const useSessionStore = defineStore('session', () => {
     manualPaused.value = false;
     autoPaused.value = false;
     lastMoveTs = Date.now();
+    lastTickTs = Date.now(); // não conta o tempo que ficou pausado
   }
 
   async function finish(): Promise<FinishResult> {
