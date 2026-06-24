@@ -2,8 +2,13 @@
 // ====================================
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { ref, computed } from 'vue';
+import { Capacitor } from '@capacitor/core';
 import type { GeoPoint, Walk } from 'src/types';
 import { LOCAL_USER } from 'src/types';
+
+// No app nativo o acelerômetro pausa em segundo plano (tela apagada/bolso),
+// então os passos são estimados pela distância — confiável no bolso.
+const IS_NATIVE = Capacitor.isNativePlatform();
 import { startGeoWatch, elevationGain } from 'src/services/geo';
 import {
   startPedometer,
@@ -14,7 +19,7 @@ import { segmentCalories } from 'src/services/calories';
 import { useProfileStore } from './profile';
 import { useHistoryStore } from './history';
 
-const AUTO_PAUSE_SEC = 8; // sem movimento por N s → auto-pausa
+const AUTO_PAUSE_SEC = 20; // sem movimento por N s → auto-pausa (paradas curtas não pausam)
 const MIN_MOVING_KMH = 0.5; // abaixo disso não conta como movimento (parado)
 const MAX_REALISTIC_KMH = 25; // acima disso é "salto" de GPS — descarta
 
@@ -86,8 +91,10 @@ export const useSessionStore = defineStore('session', () => {
     startedAt.value = Date.now();
     lastMoveTs = Date.now();
 
-    // Permissão de movimento (gate iOS exige gesto do usuário — chamado no clique)
-    if (isMotionSupported()) {
+    // No web (PWA, tela aberta) usa o acelerômetro; no nativo, pula e estima
+    // os passos pela distância (motionAvailable fica false → fallback automático).
+    // Permissão de movimento no iOS exige gesto do usuário — chamado no clique.
+    if (!IS_NATIVE && isMotionSupported()) {
       const granted = await requestMotionPermission();
       motionAvailable.value = granted;
       if (granted) {

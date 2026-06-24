@@ -390,8 +390,8 @@ onMounted(() => {
   position: relative;
   border-radius: 26px;
   overflow: hidden;
-  height: 230px;
-  margin: 6px 0 18px;
+  height: 196px;
+  margin: 6px 0 14px;
   border: 1px solid var(--sw-hairline);
 }
 .map-hint {
@@ -409,18 +409,18 @@ onMounted(() => {
 }
 .hero-val {
   font-weight: 800;
-  font-size: 90px;
+  font-size: 64px;
   line-height: 0.92;
   letter-spacing: -0.02em;
   color: var(--sw-text);
 }
 .hero-val .u {
-  font-size: 30px;
+  font-size: 24px;
   color: var(--sw-live);
   margin-left: 8px;
 }
 .live {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 .estimate-note {
   display: flex;
@@ -431,11 +431,11 @@ onMounted(() => {
   color: var(--sw-text-2);
 }
 .controls {
-  margin-top: auto;
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px 0 16px;
+  padding: 4px 0 calc(var(--safe-bot) + 16px);
 }
 .ctrl {
   border: none;

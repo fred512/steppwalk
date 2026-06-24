@@ -40,9 +40,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { useSessionStore } from 'src/stores/session';
 
 const route = useRoute();
 const router = useRouter();
+const session = useSessionStore();
 const appVersion = __APP_VERSION__;
 
 const tabs = [
@@ -51,9 +53,11 @@ const tabs = [
   { name: 'profile', label: 'Perfil', icon: 'person' },
 ];
 
-// esconde as tabs nas telas de detalhe/configurações (foco total)
+// esconde as tabs nas telas de detalhe/config e DURANTE a caminhada (foco total)
 const showTabs = computed(
-  () => !['walk-detail', 'settings'].includes(String(route.name)),
+  () =>
+    session.status === 'idle' &&
+    !['walk-detail', 'settings'].includes(String(route.name)),
 );
 
 function isActive(name: string): boolean {

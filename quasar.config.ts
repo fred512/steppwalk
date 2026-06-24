@@ -84,7 +84,7 @@ export default defineConfig((/* ctx */) => {
 
     // https://legacy-app.quasar.dev/quasar-cli-vite-v2/quasar-config-file#devserver
     devServer: {
-      // https: true, // habilite p/ testar GPS/acelerômetro no celular
+      https: true, // habilite p/ testar GPS/acelerômetro no celular
       open: false,
     },
 
